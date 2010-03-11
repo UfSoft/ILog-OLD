@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block title %}Welcome to ILog{% endblock %}
+
+{% block contents %}
+  <h1>Welcome to ILog</h1>
+  <p>{% trans -%}
+    ILog is currently logging {{ channels_count }} channel.
+  {%- pluralize -%}
+    ILog is currently logging {{ channels_count }} channels.
+  {%- endtrans %}</p>
+{% endblock %}

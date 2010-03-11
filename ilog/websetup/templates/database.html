@@ -1,0 +1,19 @@
+{% extends "layout.html" %}
+{% block body %}
+  <h2>{{ _('Database') }}</h2>
+  <p>{% trans %}
+    Zine uses a database to store blog posts and other information. The
+    only information it requires therefore is a database URI. Depending on your
+    database this URI looks different. Have a look at the following table for
+    examples of database URIs.
+  {% endtrans %}</p>
+  <dl>
+    <dt>{{ _('SQLite') }}
+    <dd>{% trans %}SQLite databases are not supported{% endtrans %}
+    <dt>{{ _('MySQL') }}
+    <dd><code>{{ _('mysql://username:password@host/database_name') }}</code>
+    <dt>{{ _('Postgres') }}
+    <dd><code>{{ _('postgres://username:password@host/database_name') }}</code>
+  </dl>
+  <input type="text" name="database_uri" value="{{ values.database_uri|e }}" size="40">
+{% endblock %}

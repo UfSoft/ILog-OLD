@@ -1,0 +1,6 @@
+{% block body %}{% endblock %}
+{%- if cfg.mail_signature %}
+
+{{ '-- ' }}
+{{ cfg.mail_signature }}
+{%- endif %}

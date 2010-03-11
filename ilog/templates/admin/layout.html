@@ -1,0 +1,9 @@
+{% extends "layout.html" %}
+{% block title -%}
+  Administration &mdash; {% block subtitle %}Welcome{% endblock %}
+{%- endblock %}
+{% block head%}
+  <link rel="stylesheet" href="{{ static_url('styles/admin.css') }}" type="text/css"/>
+{% endblock %}
+{% block header_title %}Administration{% endblock %}
+

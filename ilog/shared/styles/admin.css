@@ -1,0 +1,53 @@
+body {
+  background-color: #638563;
+}
+div.header {
+  background: #4c964c url(../img/dialogbg_admin.png) repeat-x scroll left center;
+}
+div.header div.title { text-shadow: 1px 0 #3B5543; }
+div.header div.metanav {
+  background-color: #356342;
+  border-color: #428f57;
+  }
+
+div.footer {
+  background: transparent url(../img/footerbg_admin.png) repeat-x scroll left bottom;
+}
+div.body ul.navbar {
+  background-color: #356342;
+  border-top: 1px solid #428f57;
+  border-bottom: 1px solid #649f75;
+}
+
+div.body ul.ctxnavbar {
+  background-color: #639d63;
+}
+
+div.body ul.navbar li a {
+  background: transparent url(../img/dialogbg_admin.png) repeat-x scroll 0 -90px;
+}
+div.body ul.navbar li a:hover { background-color: #50855e; }
+
+div.body ul.navbar li.active a, div.body ul.navbar li.active a:hover {
+  background: #639d63 url(../img/greentab.png) repeat-x scroll 0 0;
+  text-shadow: 1px 0 #3B5543;
+}
+div.body ul.ctxnavbar li a:hover {
+  background-color: #3b5a3d;
+}
+div.body ul.ctxnavbar li.active a,
+div.body ul.standalonebar li.active a,
+div.body ul.standalonebar li.active a:hover {
+  background: #FFFFFF url(../img/ctxbartab_admin.png) repeat-x scroll 0 0;
+  color: #508A60;
+}
+
+div.contents h1 { color: #3b5543; }
+
+div.contents input[name="memcached_servers"],
+div.contents input[name="database_uri"],
+div.contents input[name="secret_key"],
+div.contents input[name="api_key"],
+div.contents input[name="url"] {
+  width: 600px;
+}

@@ -1,0 +1,13 @@
+{% extends 'mails/layout.txt' -%}
+{% block body %}{% trans user=user.display_name,
+                         site='ILOG' -%}
+Hi {{ user }}!
+
+You have made changes on your account on {{ site }} which
+requires you to re-activate your account.
+You have to follow the following link to re-activate your account:
+
+{{ confirmation_url }}
+
+See you soon on {{ site }}!
+{%- endtrans %}{% endblock %}

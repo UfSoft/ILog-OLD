@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+{% block title %}Login{% endblock %}
+
+{% block contents %}
+<fieldset class="form">
+  <legend>Authenticate</legend>
+  {% if cfg['rpxnow/app_domain'] %}
+  <div class="rpxnow">
+    <iframe allowtransparency="true"
+            src="http://{{ cfg['rpxnow/app_domain'] }}/openid/embed?token_url={{ token_url }}"
+            style="width: 400px; height: 240px;" frameborder="no" scrolling="no"></iframe>
+  </div>
+  {% endif %}
+  {{ form.as_dd() }}
+</fieldset>
+{% endblock %}

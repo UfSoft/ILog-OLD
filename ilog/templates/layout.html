@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+          "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>{% block title %}Welcome{% endblock %} &mdash; {{ "I Log"|e }}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="author" content="Pedro Algarvio"/>
+    <meta name="copyright" content="Pedro Algarvio"/>
+    <link rel="stylesheet" href="{{ static_url('styles/style.css') }}" type="text/css"/>
+    <link rel="SHORTCUT ICON" href="{{ static_url('img/favicon.png') }}">
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <div class="header">
+      <div class="logo">&nbsp;</div>
+      <div class="title">I Log &mdash; {% block header_title %}Welcome{% endblock %}</div>
+      <div class="metanav">
+        {% for item in core.metanav %}
+        <a id="{{ item.id|e }}" href="{{ item.url|e }}">{{ item.title|e }}</a> |
+        {% endfor %}
+        <a href="/tos">Terms of Service</a>
+      </div>
+    </div>
+    <div class="body">
+      <ul class="navbar{% if not core.ctxnavbar %} standalonebar{% endif %}">
+      {% for item in core.navbar %}
+        <li class="{% if item.active %}active{% else %}inactive{% endif %}">
+          <a id="{{ item.id|e }}" href="{{ item.url|e }}">{{ item.title|e }}</a>
+        </li>
+      {% endfor %}
+      </ul>
+      {% if core.ctxnavbar %}
+      <ul class="ctxnavbar">
+      {% for item in core.ctxnavbar %}
+        <li class="{% if item.active %}active{% else %}inactive{% endif %}">
+          <a id="{{ item.id|e }}" href="{{ item.url|e }}">{{ item.title|e }}</a>
+        </li>
+      {% endfor %}
+      </ul>
+      {% endif %}
+      <div class="contents">
+        {% for message in core.messages %}
+        <div class="message message-{{ message.type }}">{{ message.msg }}</div>
+        {% endfor %}
+        {% block contents %}{% endblock %}
+        <br class="clear-both"/>
+      </div>
+    </div>
+    <div class="footer">
+      <p>ILog &copy; 2010 &mdash; Pedro Algarvio @ UfSoft.org</p>
+      <p>{% trans zine='<a href="http://zine.pocoo.org/">Zine\'s</a>'
+         %}Design kindly cloned from {{ zine }} administration panel{% endtrans %}
+      </p>
+        </div>
+  </body>
+</html>
