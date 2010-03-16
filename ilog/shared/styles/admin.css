@@ -51,3 +51,32 @@ div.contents input[name="api_key"],
 div.contents input[name="url"] {
   width: 600px;
 }
+
+div.contents table {
+  border-bottom: 5px solid #d2f4d2;
+}
+div.contents table th {
+  background-color: #d2f4d2;
+}
+div.contents table td {
+  border-bottom: 1px dotted #d2f4d2;
+}
+
+div.contents input[type="submit"],
+div.contents input[type="button"],
+div.contents input[type="reset"],
+div.contents a.button {
+  color: #638563;
+}
+div.contents div.actions {
+  border-bottom: 1px solid #a8cfa8;
+  border-top: 1px solid #a8cfa8;
+  background-color: #b0f4b0;
+}
+div.formbox h3 {
+  background-color: #d2f4d2;
+}
+
+div.toggleable h3:hover {
+  background-color: #a8d7a8;
+}
