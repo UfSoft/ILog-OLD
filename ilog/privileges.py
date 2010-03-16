@@ -11,7 +11,7 @@
 from werkzeug.exceptions import Forbidden
 
 from ilog.application import get_application, get_request
-from ilog.database import db, Privilege
+from ilog.database import db, Privilege as DBPrivilege
 from ilog.i18n import lazy_gettext
 
 
@@ -100,7 +100,7 @@ class Privilege(_Expr):
         return self.name
 
 
-def add_admin_privilege(privilege):
+def add_privilege(privilege):
     """If privilege is none, BLOG_ADMIN is returned, otherwise BLOG_ADMIN
     is "or"ed to the expression.
     """
@@ -119,7 +119,7 @@ def bind_privileges(container, privileges, user=None):
     if not user:
         user = get_request().user
     app = get_application()
-    notification_types = app.notification_manager.notification_types
+#    notification_types = app.notification_manager.notification_types
     current_map = dict((x.name, x) for x in container)
     currently_attached = set(x.name for x in container)
     new_privileges = set(privileges)
@@ -129,33 +129,39 @@ def bind_privileges(container, privileges, user=None):
         container.remove(current_map[name])
         # remove any privilege dependencies that are not attached to other
         # privileges
-        if current_map[name].dependencies:
-            for privilege in current_map[name].dependencies.iter_privileges():
+        if app.privileges[name].dependencies:
+            for privilege in app.privileges[name].dependencies.iter_privileges():
                 try:
                     container.remove(privilege)
                 except KeyError:
                     # privilege probably already removed
                     pass
 
-        # remove notification subscriptions that required the privilege
-        # being deleted.
-        for notification in user.notification_subscriptions:
-            privs = notification_types[notification.notification_id].privileges
-            if current_map[name] in privs.iter_privileges():
-                db.session.delete(notification)
-                break
-            for privilege in current_map[name].dependencies:
-                if privilege in privs.iter_privileges():
-                    db.session.delete(notification)
+#        # remove notification subscriptions that required the privilege
+#        # being deleted.
+#        for notification in user.notification_subscriptions:
+#            privs = notification_types[notification.notification_id].privileges
+#            if current_map[name] in privs.iter_privileges():
+#                db.session.delete(notification)
+#                break
+#            for privilege in current_map[name].dependencies:
+#                if privilege in privs.iter_privileges():
+#                    db.session.delete(notification)
 
     # add new privileges
     for name in new_privileges.difference(currently_attached):
         privilege = app.privileges[name]
-        container.add(privilege)
+        db_privilege = DBPrivilege.query.get(privilege.name)
+        if not db_privilege:
+            db_privilege = DBPrivilege(privilege.name)
+        container.add(db_privilege)
         # add dependable privileges
         if privilege.dependencies:
             for privilege in privilege.dependencies.iter_privileges():
-                container.add(privilege)
+                db_privilege = DBPrivilege.query.get(privilege.name)
+                if not db_privilege:
+                    db_privilege = DBPrivilege(privilege.name)
+                container.add(db_privilege)
 
 
 def require_privilege(expr):
@@ -200,7 +206,7 @@ def _register(name, description, privilege_dependencies=None):
     __all__.append(name)
 
 
-_register('ILOG_ADMIN', lazy_gettext(u'can administer the blog'))
+_register('ILOG_ADMIN', lazy_gettext(u'can administer ILog'))
 _register('ENTER_ADMIN_PANEL', lazy_gettext(u'can enter admin panel'))
 #_register('CREATE_ENTRIES', lazy_gettext(u'can create new entries'),
 #          ENTER_ADMIN_PANEL)
