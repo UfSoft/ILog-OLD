@@ -32,11 +32,11 @@ all_views = {
 
     # Administration
     'admin.index'                   : admin.index,
-    'admin.accounts.groups'         : accounts.groups,
-    'admin.accounts.groups.new'     : accounts.groups_edit,
-    'admin.accounts.groups.edit'    : accounts.groups_edit,
-    'admin.accounts.groups.delete'  : accounts.groups_delete,
-    'admin.accounts.users'          : accounts.groups,
+    'admin.manage.groups'           : accounts.groups,
+    'admin.manage.groups.new'       : accounts.groups_edit,
+    'admin.manage.groups.edit'      : accounts.groups_edit,
+    'admin.manage.groups.delete'    : accounts.groups_delete,
+    'admin.manage.users'            : accounts.groups,
     'admin.options.basic'           : options.basic_options,
     'admin.options.advanced'        : options.advanced_options,
     'admin.options.rpxnow'          : options.rpxnow_options,

@@ -12,7 +12,7 @@ from ilog.i18n import _
 
 def render_admin_view(*args, **kwargs):
     add_navbar_item('admin.index', _(u'Dashboard'))
-    add_navbar_item('admin.accounts.groups', _(u'Accounts'))
+    add_navbar_item('admin.manage.groups', _(u'Manage'))
     add_navbar_item('admin.options.basic', _(u'Options'))
     return render_response(*args, **kwargs)
 
