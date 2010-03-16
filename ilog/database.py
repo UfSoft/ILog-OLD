@@ -126,6 +126,7 @@ db.and_ = and_
 db.or_ = or_
 #del and_, or_
 
+
 db.create_engine = create_engine
 db.DeclarativeBase = DeclarativeBase = declarative_base()
 db.metadata = metadata = DeclarativeBase.metadata
@@ -134,6 +135,11 @@ db.session = session = orm.scoped_session(
     lambda: orm.create_session(get_engine(), autoflush=True, autocommit=False),
                                 local_manager.get_ident)
 
+#: forward some session methods to the module as well
+for name in 'delete', 'save', 'flush', 'execute', 'begin', 'mapper', \
+            'commit', 'rollback', 'clear', 'refresh', 'expire', \
+            'query_property':
+    setattr(db, name, getattr(session, name))
 #: called at the end of a request
 db.cleanup_session = cleanup_session = session.remove
 
@@ -255,7 +261,7 @@ class User(DeclarativeBase):
                           for p in result])
 
     def has_privilege(self, privilege):
-        return add_admin_privilege(privilege)(self.all_privileges)
+        return add_privilege(privilege)(self.all_privileges)
 
     @property
     def is_admin(self):
@@ -320,6 +326,16 @@ class Group(DeclarativeBase):
     privileges    = db.relation("Privilege", secondary="group_privileges",
                                 backref="priveliged_groups", lazy=True,
                                 collection_class=set, cascade='all, delete')
+
+    query = session.query_property(orm.Query)
+
+    def __init__(self, group_name):
+        self.name = group_name
+        DeclarativeBase.__init__(self)
+
+    def __repr__(self):
+        return u'<%s %r:%r>' % (self.__class__.__name__, self.id, self.name)
+
 
 group_users = db.Table('group_users', metadata,
     db.Column('group_id', db.ForeignKey('groups.id')),
@@ -463,5 +479,5 @@ class Session(DeclarativeBase):
 
 
 # circular imports
-from ilog.privileges import (add_admin_privilege, ILOG_ADMIN, ENTER_ADMIN_PANEL,
+from ilog.privileges import (add_privilege, ILOG_ADMIN, ENTER_ADMIN_PANEL,
                              ENTER_ACCOUNT_PANEL)
