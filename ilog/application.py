@@ -145,7 +145,7 @@ def build_core_items(_active_menu_item=None):
         p = _active_item.split('.')
         if len(p) == 1:
             active_menu = active_submenu = p[0]
-        elif len(p) == 3:
+        elif len(p) >= 3:
             active_menu = '.'.join(p[:-1])
             active_submenu = p[-1]
         else:
@@ -458,6 +458,15 @@ class ILog(object):
         """
         self.dispatch_wsgi = middleware_factory(self.dispatch_wsgi,
                                                    *args, **kwargs)
+
+    def list_privileges(self):
+        """Return a sorted list of privileges."""
+        # TODO: somehow add grouping...
+        result = [(x.name, unicode(x.explanation)) for x in
+                  self.privileges.values()]
+        result.sort(key=lambda x: x[0] == 'ILOG_ADMIN' or x[1].lower())
+        print 888, result
+        return result
 
 
     def handle_not_found(self, request, exception):
