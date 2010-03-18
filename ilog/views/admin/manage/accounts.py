@@ -17,15 +17,11 @@ from ilog.forms import (DeleteGroupForm, EditGroupForm,
 from ilog.privileges import require_privilege, ILOG_ADMIN
 from ilog.utils import flash, forms, validators
 from ilog.utils.http import redirect_to
-from ilog.views.admin import render_admin_view
+from ilog.views.admin.manage import render_manage_view
 
 def render_accounts_view(template_name, *args, **kwargs):
-#    add_ctxnavbar_item('admin.manage.index', _(u'Overview'))
-    add_ctxnavbar_item('admin.manage.groups', _(u'Groups'))
-    add_ctxnavbar_item('admin.manage.users', _(u'Users'))
-
-    template_name = 'admin/accounts/%s' % template_name
-    return render_admin_view(template_name, *args, **kwargs)
+    return render_manage_view(template_name, _active_submenu='accounts',
+                              *args, **kwargs)
 
 
 @require_privilege(ILOG_ADMIN)
