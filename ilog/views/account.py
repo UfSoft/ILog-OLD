@@ -13,14 +13,12 @@ import simplejson
 from ilog.application import (get_request, render_response, render_template,
                               url_for, add_navbar_item, add_ctxnavbar_item)
 from ilog.database import User, session
+from ilog.forms import AccountProfileForm, LoginForm, RegisterForm
 from ilog.privileges import ENTER_ACCOUNT_PANEL
 from ilog.utils import flash
 from ilog.utils.http import get_redirect_target, redirect_back, redirect_to
 from ilog.utils.mail import send_email
-from ilog.i18n import _, list_languages, list_timezones
-from ilog.utils import forms
-from ilog.utils.validators import (unique_email, unique_username,
-                                   valid_username, is_valid_email, not_empty)
+from ilog.i18n import _
 
 try:
     from hashlib import sha1
@@ -36,23 +34,6 @@ def render_account_view(*args, **kwargs):
         add_ctxnavbar_item('account.dashboard', _(u'Dashboard'))
         add_ctxnavbar_item('account.profile', _(u'Profile'))
     return render_response(*args, **kwargs)
-
-
-class LoginForm(forms.Form):
-    username     = forms.TextField(_(u"Username"), required=True,
-                                   validators=[valid_username])
-    password     = forms.TextField(_(u'Password'), required=True,
-                                   widget=forms.PasswordInput,
-                                   validators=[not_empty])
-    remember_me  = forms.BooleanField(_(u'Remember Me'), widget=forms.Checkbox)
-
-    def context_validate(self, data):
-        log.debug("Validating context with data: %s", data)
-        account = User.query.filter(User.username==data['username']).first()
-        if not account.check_password(data['password']):
-            log.debug("Failed authentication for %s", data['username'])
-            raise forms.ValidationError(_(u"Failed login!"))
-        get_request().login(account.uuid, permanent=data['remember_me'])
 
 
 def login(request):
@@ -126,36 +107,6 @@ def logout(request):
     return redirect_to('index')
 
 
-class AccountProfileForm(forms.Form):
-    uuid         = forms.TextField(required=True, widget=forms.HiddenInput)
-    display_name = forms.TextField(_(u"Display Name"), required=True)
-    email        = forms.TextField("Email Address", required=True,
-                                   validators=[not_empty, is_valid_email])
-    password     = forms.TextField(u'New password',
-                                   widget=forms.PasswordInput)
-    rep_password = forms.TextField(u'Repeat password',
-                                   widget=forms.PasswordInput)
-    locale       = forms.ChoiceField(_(u'Language'), choices=list_languages())
-    tzinfo       = forms.ChoiceField(_(u'Timezone'), choices=list_timezones())
-
-    def __init__(self, *args, **kwargs):
-        account = get_request().user
-        kwargs['initial'] = dict(uuid = account.uuid,
-                                 display_name = account.display_name,
-                                 email = account.email,
-                                 locale = account.locale,
-                                 tzinfo = account.tzinfo)
-        forms.Form.__init__(self, *args, **kwargs)
-        self.account = account
-
-    def validate_email(self, email):
-        if email != self.account.email:
-            unique_email(self, email)
-
-    def context_validate(self, data):
-        if data['password'] and (data['password'] != data['rep_password']):
-            raise forms.ValidationError(_('The two passwords don\'t match.'))
-
 
 def profile(request):
     form = AccountProfileForm()
@@ -185,25 +136,6 @@ def profile(request):
                     u"re-activate your account.") % account.email )
     return render_account_view('account/register.html', form=form.as_widget())
 
-
-class RegisterForm(forms.Form):
-
-    identifier   = forms.TextField(required=True, widget=forms.HiddenInput)
-    display_name = forms.TextField(_(u"Display Name"), required=True)
-    username     = forms.TextField(_(u"Desired Username"), required=True,
-                                   validators=[unique_username])
-    email        = forms.TextField(_(u"Email Address"), required=True,
-                                   validators=[unique_email])
-    new_password = forms.TextField(_(u'New password'), required=True,
-                                   widget=forms.PasswordInput,
-                                   validators=[not_empty])
-    rep_password = forms.TextField(_(u'Repeat password'), required=True,
-                                   widget=forms.PasswordInput,
-                                   validators=[not_empty])
-
-    def context_validate(self, data):
-        if data['new_password'] != data['rep_password']:
-            raise forms.ValidationError(_('The two passwords don\'t match.'))
 
 def register(request):
     if request.user.is_somebody:

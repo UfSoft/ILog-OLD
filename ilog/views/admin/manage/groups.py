@@ -8,30 +8,27 @@
 
 from werkzeug.exceptions import NotFound
 
-from ilog.application import add_ctxnavbar_item
 from ilog.i18n import _
-from ilog.database import db, Group, User
-from ilog.forms import (DeleteGroupForm, EditGroupForm,
-#                        DeleteUserForm, EditUserForm
-                        )
+from ilog.database import db, Group
+from ilog.forms import DeleteGroupForm, EditGroupForm
 from ilog.privileges import require_privilege, ILOG_ADMIN
-from ilog.utils import flash, forms, validators
+from ilog.utils import flash
 from ilog.utils.http import redirect_to
 from ilog.views.admin.manage import render_manage_view
 
-def render_accounts_view(template_name, *args, **kwargs):
-    return render_manage_view(template_name, _active_submenu='accounts',
+def render_groups_view(template_name, *args, **kwargs):
+    return render_manage_view(template_name, _active_submenu='groups',
                               *args, **kwargs)
 
 
 @require_privilege(ILOG_ADMIN)
-def groups(request):
+def list(request):
     groups = Group.query.all()
-    return render_accounts_view('groups.html', groups=groups)
+    return render_groups_view('list.html', groups=groups)
 
 
 @require_privilege(ILOG_ADMIN)
-def groups_edit(request, group_id=None):
+def edit(request, group_id=None):
     group = None
     if group_id is not None:
         group = Group.query.get(group_id)
@@ -59,12 +56,11 @@ def groups_edit(request, group_id=None):
             if request.form.get('save'):
                 return form.redirect('admin.manage.groups')
             return redirect_to('admin.manage.groups.edit', group_id=group.id)
-    return render_accounts_view('groups_edit.html', form=form.as_widget(),
-                                _active_menu_item='admin.manage.groups')
+    return render_groups_view('edit.html', form=form.as_widget())
 
 
 @require_privilege(ILOG_ADMIN)
-def groups_delete(request, group_id=None):
+def delete(request, group_id=None):
     """Like all other delete screens just that it deletes a group."""
     group = Group.query.get(group_id)
     if group is None:
@@ -83,6 +79,5 @@ def groups_delete(request, group_id=None):
             db.commit()
             return form.redirect('admin.manage.groups')
 
-    return render_accounts_view('groups_delete.html',
-                               _active_menu_item='admin.manage.groups',
-                               form=form.as_widget())
+    return render_groups_view('delete.html', form=form.as_widget())
+

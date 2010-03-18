@@ -7,7 +7,8 @@
 # ==============================================================================
 
 from ilog.views import account, admin, base, networks
-from ilog.views.admin import accounts, options
+from ilog.views.admin import options
+from ilog.views.admin.manage import users, groups
 
 all_views = {
     # Main Handler
@@ -32,11 +33,14 @@ all_views = {
 
     # Administration
     'admin.index'                   : admin.index,
-    'admin.manage.groups'           : accounts.groups,
-    'admin.manage.groups.new'       : accounts.groups_edit,
-    'admin.manage.groups.edit'      : accounts.groups_edit,
-    'admin.manage.groups.delete'    : accounts.groups_delete,
-    'admin.manage.users'            : accounts.groups,
+    'admin.manage.groups'           : groups.list,
+    'admin.manage.groups.new'       : groups.edit,
+    'admin.manage.groups.edit'      : groups.edit,
+    'admin.manage.groups.delete'    : groups.delete,
+    'admin.manage.users'            : users.list,
+    'admin.manage.users.new'        : users.edit,
+    'admin.manage.users.edit'       : users.edit,
+    'admin.manage.users.delete'     : users.delete,
     'admin.options.basic'           : options.basic_options,
     'admin.options.advanced'        : options.advanced_options,
     'admin.options.rpxnow'          : options.rpxnow_options,

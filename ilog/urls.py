@@ -49,7 +49,12 @@ urls_map = Map([
                 Rule('/edit/<int:group_id>', endpoint='admin.manage.groups.edit'),
                 Rule('/delete/<int:group_id>', endpoint='admin.manage.groups.delete'),
             ]),
-            Rule('/users', endpoint='admin.manage.users'),
+            Submount('/users', [
+                Rule('/', endpoint='admin.manage.users'),
+                Rule('/new', endpoint='admin.manage.users.new'),
+                Rule('/edit/<user_id>', endpoint='admin.manage.users.edit'),
+                Rule('/delete/<user_id>', endpoint='admin.manage.users.delete'),
+            ]),
         ]),
         Submount('/options', [
             Rule('/', endpoint='admin.options.basic'),
