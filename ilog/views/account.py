@@ -84,7 +84,7 @@ def rpx_post(request, token=None):
             return redirect_to('account.register')
 
         log.debug("Logging in user: %s", account.username)
-        request.login(account.uuid)
+        request.login(account.id)
         flash('Logged In!')
 #        if not account.agreed_to_tos:
 #            self.flash("You have not yet agreed to our Terms and Conditions",
@@ -166,7 +166,7 @@ def register(request):
                          [account.email], quiet=False)
             flash(_(u"A confirmation email has been sent to \"%s\" to activate "
                     u"your account.") % account.email )
-            request.login(account.uuid, permanent=True)
+            request.login(account.id)
             return redirect_to('index')
         else:
             return render_account_view('account/register.html', form=form.as_widget())

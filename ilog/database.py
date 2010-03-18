@@ -15,7 +15,6 @@ import logging
 from hashlib import md5, sha1
 from time import time
 from types import ModuleType
-from uuid import uuid4
 from datetime import datetime, timedelta
 
 import sqlalchemy
@@ -164,8 +163,7 @@ class User(DeclarativeBase):
 
     is_somebody   = True
 
-    uuid          = db.Column(db.String(32), primary_key=True,
-                              default=lambda: uuid4().hex)
+    id            = db.Column(db.Integer, primary_key=True)
     identifier    = db.Column(db.String, index=True, unique=True)
     provider      = db.Column(db.String(25), index=True, unique=True)
     username      = db.Column(db.String(25), index=True, unique=True)
@@ -215,10 +213,10 @@ class User(DeclarativeBase):
     active = property(_active)
 
     def set_activation_key(self):
-        self.activation_key = sha1(
-            ("%s|%s|%s|%s" % (
-                self.uuid, self.identifier or self.username,
-                self.register_date, time())).encode('utf-8')).hexdigest()
+        self.activation_key = sha1(("%s|%s|%s|%s" % (
+            self.id, self.identifier or self.username,
+            self.register_date, time())).encode('utf-8')
+        ).hexdigest()
 
     def activate(self):
         self.activation_key = '!'
@@ -308,7 +306,7 @@ class Privilege(DeclarativeBase):
 
 
 user_privileges = db.Table('user_privileges', metadata,
-    db.Column('user_id', db.ForeignKey('users.uuid')),
+    db.Column('user_id', db.ForeignKey('users.id')),
     db.Column('privilege_id', db.ForeignKey('privileges.id'))
 )
 
@@ -339,7 +337,7 @@ class Group(DeclarativeBase):
 
 group_users = db.Table('group_users', metadata,
     db.Column('group_id', db.ForeignKey('groups.id')),
-    db.Column('user_id', db.ForeignKey('users.uuid'))
+    db.Column('user_id', db.ForeignKey('users.id'))
 )
 
 group_privileges = db.Table('group_privileges', metadata,
@@ -352,7 +350,7 @@ class Bot(DeclarativeBase):
     __tablename__ = 'bots'
 
     name    = db.Column(db.String, primary_key=True)
-    user_id = db.Column(db.ForeignKey('users.uuid'))
+    user_id = db.Column(db.ForeignKey('users.id'))
 
 
 class Network(DeclarativeBase):
@@ -420,7 +418,7 @@ class Identity(DeclarativeBase):
     nick           = db.Column(db.String(64))
     realname       = db.Column(db.String(128))
     ident          = db.Column(db.String(64))
-    user_id        = db.Column(db.ForeignKey('users.uuid'), default=None)
+    user_id        = db.Column(db.ForeignKey('users.id'), default=None)
 
 
 class Channel(DeclarativeBase):
@@ -462,7 +460,7 @@ class Session(DeclarativeBase):
     ip_address  = db.Column(db.String(46))
     user_agent  = db.Column(db.String(255))
     expires     = db.Column(db.DateTime)
-    user_id     = db.Column(db.ForeignKey('users.uuid'), default=None)
+    user_id     = db.Column(db.ForeignKey('users.id'), default=None)
 
     # Relations
     authenticated_as = db.relation(User, backref='session', uselist=False)

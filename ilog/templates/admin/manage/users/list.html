@@ -4,18 +4,18 @@
   <h1>{{ _("Manage Users") }}</h1>
   <table>
     <tr>
+      <th>{{ _("ID") }}</th>
       <th>{{ _("Username") }}</th>
       <th>{{ _("Realname") }}</th>
       <th>{{ _("Mail") }}</th>
-      <th>{{ _("UUID") }}</th>
     </tr>
   {%- for user in users %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
-      <td><a href="{{ url_for('admin.manage.users.edit', user_id=user.uuid)|e }}">{{
+      <td>{{ user.id }}</td>
+      <td><a href="{{ url_for('admin.manage.users.edit', user_id=user.id)|e }}">{{
           user.username|e }}</a></td>
       <td>{{ user.display_name|e }}</td>
       <td>{{ (user.email or '')|e }}</td>
-      <td>{{ user.uuid }}</td>
     </tr>
   {%- endfor %}
   </table>

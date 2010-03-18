@@ -40,7 +40,7 @@ def edit(request, user_id=None):
             return form.redirect('admin.manage.users')
         elif request.form.get('delete') and user:
             return redirect_to('admin.manage.users.delete',
-                               user_id=user.uuid)
+                               user_id=user.id)
         elif form.validate(request.form):
             if user is None:
                 user = form.make_user()
@@ -55,7 +55,7 @@ def edit(request, user_id=None):
 
             if request.form.get('save'):
                 return form.redirect('admin.manage.users')
-            return redirect_to('admin.manage.users.edit', user_id=user.uuid)
+            return redirect_to('admin.manage.users.edit', user_id=user.id)
     return render_accounts_view('edit.html', form=form.as_widget())
 
 
@@ -71,10 +71,10 @@ def delete(request, user_id=None):
     if request.method == 'POST':
         if request.form.get('cancel'):
             return form.redirect('admin.manage.users.edit',
-                                 user_id=user.uuid)
+                                 user_id=user.id)
         elif request.form.get('confirm') and form.validate(request.form):
             form.add_invalid_redirect_target('admin.manage.users.edit',
-                                             user_id=user.uuid)
+                                             user_id=user.id)
             form.delete_group()
             db.commit()
             return form.redirect('admin.manage.users')

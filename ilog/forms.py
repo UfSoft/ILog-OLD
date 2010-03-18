@@ -145,7 +145,7 @@ class LoginForm(forms.Form):
         if not account.check_password(data['password']):
             log.debug("Failed authentication for %s", data['username'])
             raise forms.ValidationError(_(u"Failed login!"))
-        get_request().login(account.uuid, permanent=data['remember_me'])
+        get_request().login(account.id, permanent=data['remember_me'])
 
 
 class RegisterForm(forms.Form):
@@ -169,7 +169,7 @@ class RegisterForm(forms.Form):
 
 
 class AccountProfileForm(_UserBoundForm):
-    uuid         = forms.TextField(required=True, widget=forms.HiddenInput)
+    id           = forms.TextField(required=True, widget=forms.HiddenInput)
     username     = forms.TextField(_(u"Username"), required=True)
     display_name = forms.TextField(_(u"Display Name"), required=True)
     email        = forms.TextField("Email Address", required=True,
@@ -185,7 +185,7 @@ class AccountProfileForm(_UserBoundForm):
     def __init__(self, user=None, initial=None):
         if user is not None:
             initial = forms.fill_dict(initial,
-                uuid=user.uuid,
+                id=user.id,
                 username=user.username,
                 display_name=user.display_name,
                 email=user.email,
@@ -199,7 +199,7 @@ class AccountProfileForm(_UserBoundForm):
         self.tzinfo.choices = list_timezones()
 
     def validate_email(self, email):
-        if email != self.user.email:
+        if self.user and (email != self.user.email):
             validators.unique_email(self, email)
 
     def context_validate(self, data):
@@ -238,7 +238,7 @@ class EditUserForm(AccountProfileForm):
     def validate_username(self, username):
         query = User.query.filter_by(username=username)
         if self.user is not None:
-            query = query.filter(User.uuid != self.user.uuid)
+            query = query.filter(User.id != self.user.id)
         if query.first() is not None:
             raise forms.ValidationError(_('This username is already in use'))
 

@@ -276,21 +276,21 @@ class Request(RequestBase):
         """Are we behind a proxy?"""
         return environ.get('ILOG_BEHIND_PROXY') == '1'
 
-    def login(self, uuid, permanent=False):
+    def login(self, id, permanent=False):
         """Log the given user in. Can be user_id, username or
         a full blown user object.
         """
-        log.debug("Binding user with uuid %r to request(%d)",
-                  uuid, id(self))
+        log.debug("Binding user with id %r to request(%d)",
+                  id, id(self))
         from ilog.database import User
-        user = User.query.get(uuid)
+        user = User.query.get(id)
         if user is None:
             raise RuntimeError('User does not exist')
         log.debug("Got user %r", user)
         self.user = user
         log.debug("Binding user %r to request(%d)", self.user.username, id(self))
         self.user.update_last_login()
-        self.session['uid'] = user.uuid
+        self.session['uid'] = user.id
         self.session['lt'] = time()
         if permanent:
             self.session['pmt'] = True
