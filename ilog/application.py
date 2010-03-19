@@ -276,14 +276,14 @@ class Request(RequestBase):
         """Are we behind a proxy?"""
         return environ.get('ILOG_BEHIND_PROXY') == '1'
 
-    def login(self, id, permanent=False):
+    def login(self, user_id, permanent=False):
         """Log the given user in. Can be user_id, username or
         a full blown user object.
         """
         log.debug("Binding user with id %r to request(%d)",
-                  id, id(self))
+                  user_id, id(self))
         from ilog.database import User
-        user = User.query.get(id)
+        user = User.query.get(user_id)
         if user is None:
             raise RuntimeError('User does not exist')
         log.debug("Got user %r", user)
@@ -465,7 +465,6 @@ class ILog(object):
         result = [(x.name, unicode(x.explanation)) for x in
                   self.privileges.values()]
         result.sort(key=lambda x: x[0] == 'ILOG_ADMIN' or x[1].lower())
-        print 888, result
         return result
 
 
@@ -474,22 +473,24 @@ class ILog(object):
         that listen for for absolute urls.  See `add_absolute_url` for
         details.
         """
-#        for handler in self._absolute_url_handlers:
-#            try:
-#                rv = handler(request)
-#                if rv is not None:
-#                    return rv
-#            except NotFound:
-#                # a not found exception has the same effect as returning
-#                # None.  The next handler is processed.  All other http
-#                # exceptions are passed trough.
-#                pass
         response = render_response('404.html')
         response.status_code = 404
         return response
 
     def send_error_notification(self, request, error):
-        pass
+        from pprint import pprint
+        from cStringIO import StringIO
+        from ilog.database import User, Privilege
+        from ilog.utils.mail import send_email
+        request_buffer = StringIO()
+        pprint(request.__dict__, request_buffer)
+        request_buffer.seek(0)
+        admins = Privilege.query.get('ILOG_ADMIN').priveliged_users
+        email_contents = render_template('mails/error_notification.txt',
+                                         request=request_buffer.read(),
+                                         error=error)
+        send_email(i18n._(u"Server Error on ILog"), email_contents,
+                   [admin.email for admin in admins], quiet=False)
 #        from zine.notifications import send_notification_template, ZINE_ERROR
 #        request_buffer = StringIO()
 #        pprint(request.__dict__, request_buffer)
