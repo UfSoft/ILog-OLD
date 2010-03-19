@@ -173,35 +173,14 @@ class WebSetup(object):
                 username=value('admin_username'),
                 email=value('admin_email'),
                 display_name=value('admin_display_name'),
-                active=True,
                 confirmed=True,
-                passwd=gen_pwhash(value('admin_password'))
             )
             session.add(user)
-#            user_id = e.execute(users.insert(),
-#                username=value('admin_username'),
-#                pw_hash=gen_pwhash(value('admin_password')),
-#                email=value('admin_email'),
-#                real_name=u'',
-#                description=u'',
-#                extra={},
-#                display_name='$username',
-#                is_author=True
-#            ).last_inserted_ids()[0]
+            user.set_password(value('admin_password'))
 
-            # insert a privilege for the user
-#            privilege = Privilege.query.get(ILOG_ADMIN)
-#            if not privilege:
             privilege = Privilege(ILOG_ADMIN.name)
-#            privilege_id = e.execute(privileges.insert(),
-#                name=BLOG_ADMIN.name
-#            ).last_inserted_ids()[0]
             user.privileges.add(privilege)
             session.commit()
-#            e.execute(user_privileges.insert(),
-#                user_id=user_id,
-#                privilege_id=privilege_id
-#            )
 
             # set up the initial config
             config_filename = path.join(self.instance_folder, 'ilog.ini')
