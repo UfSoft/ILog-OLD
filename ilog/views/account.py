@@ -12,8 +12,8 @@ import logging
 import simplejson
 from ilog.application import (get_request, render_response, render_template,
                               url_for, add_navbar_item, add_ctxnavbar_item)
-from ilog.database import User, session
-from ilog.forms import AccountProfileForm, LoginForm, RegisterForm
+from ilog.database import db, Privilege, User
+from ilog.forms import AccountProfileForm, DeleteUserForm, LoginForm, RegisterForm
 from ilog.privileges import ENTER_ACCOUNT_PANEL
 from ilog.utils import flash
 from ilog.utils.http import get_redirect_target, redirect_back, redirect_to
@@ -27,13 +27,14 @@ except ImportError:
 
 log = logging.getLogger(__name__)
 
-def render_account_view(*args, **kwargs):
+def render_account_view(template_name, *args, **kwargs):
+    template_name = "account/%s" % template_name
     request = get_request()
     if request.user.is_somebody:
         add_navbar_item('account.dashboard', _(u'My Account'))
         add_ctxnavbar_item('account.dashboard', _(u'Dashboard'))
         add_ctxnavbar_item('account.profile', _(u'Profile'))
-    return render_response(*args, **kwargs)
+    return render_response(template_name, *args, **kwargs)
 
 
 def login(request):
@@ -48,8 +49,8 @@ def login(request):
     if request.method == 'POST' and form.validate(request.form):
         log.debug("Authentication success for %s!", request.values['username'])
         return redirect_back('index')
-    return render_account_view('account/login.html', form=form.as_widget(),
-                       token_url=token_url)
+    return render_account_view('login.html', form=form.as_widget(),
+                               token_url=token_url)
 
 def rpx_post(request, token=None):
     log.debug("on rpx_post: %s with data: %r", request, request.values)
@@ -109,11 +110,14 @@ def logout(request):
 
 
 def profile(request):
-    form = AccountProfileForm()
+    form = AccountProfileForm(request.user)
 
     if request.method=='POST' and form.validate(request.form):
         reactication_required = False
         account = request.user
+
+        if 'delete' in request.form:
+            return form.redirect('account.delete')
 
         for key, value in request.form.iteritems():
             if hasattr(account, key):
@@ -121,9 +125,12 @@ def profile(request):
                 if (key == 'email') and (account.email != value):
                     reactication_required = True
 
+        form.save_changes()
+        db.commit()
+
         if reactication_required:
             account.set_activation_key()
-            session.commit()
+            db.commit()
 
             email_contents = render_template(
                 'mails/reactivate_account.txt', user=account,
@@ -133,60 +140,71 @@ def profile(request):
             send_email(_(u"Re-Activate your account"), email_contents,
                          [account.email], quiet=False)
             flash(_(u"A confirmation email has been sent to \"%s\" to "
-                    u"re-activate your account.") % account.email )
-    return render_account_view('account/register.html', form=form.as_widget())
+                    u"re-activate your account.") % account.email)
+        return redirect_back('account.profile')
+    return render_account_view('profile.html', form=form.as_widget())
 
+def delete(request):
+    form = DeleteUserForm(request.user)
+    if request.method == 'POST':
+        if request.form.get('cancel'):
+            return redirect_back('account.profile')
+        elif request.form.get('confirm') and form.validate(request.form):
+            form.add_invalid_redirect_target('account.profile')
+            form.delete_user()
+            db.commit()
+            request.logout()
+            flash(_(u"Your account was deleted successfully."))
+            return form.redirect('index')
+    return render_account_view('delete.html', form=form.as_widget())
 
 def register(request):
     if request.user.is_somebody:
         flash(_(u"You have already authenticated."), "error")
         return redirect_back('account.profile')
 
-    elif request.method == 'POST':
-        form = RegisterForm(request.form)
-        if form.validate(request.form):
-            account = User(
-                identifier=request.form.get('identifier', None),
-                provider=request.form.get('providerName', '').lower(),
-                username=request.form.get('username', None),
-                email=request.form.get('email', None),
-                display_name=request.form.get('display_name', None),
-                passwd=request.form.get('new_password', None),
-            )
-            account.set_activation_key()
-            session.add(account)
-            session.commit()
-            email_contents = render_template(
-                'mails/activate_account.txt',
-                user=account.display_name,
-                confirmation_url=url_for('account.activate',
-                                         key=account.activation_key,
-                                         _external=True))
-            send_email(_(u"Activate your account"), email_contents,
-                         [account.email], quiet=False)
-            flash(_(u"A confirmation email has been sent to \"%s\" to activate "
-                    u"your account.") % account.email )
-            request.login(account.id)
-            return redirect_to('index')
-        else:
-            return render_account_view('account/register.html', form=form.as_widget())
 
-    rpx_profile = request.session.pop('rpx_profile', None)
+    rpx_profile = request.session.get('rpx_profile', None)
     if not rpx_profile:
         flash(_(u"Account registrations will be performed after signing-in "
-                u"using one of the following servives."), "error")
+                u"using one of the following services."), "error")
         return redirect_to('account.login')
 
     display_name = rpx_profile.get('name', None)
     form = RegisterForm({
         'identifier': rpx_profile.get('identifier'),
+        'provider': rpx_profile.get('providerName'),
         'username': rpx_profile.get('preferredUsername', ''),
         'display_name': display_name and
                         display_name.get('formatted', '') or '',
         'email': rpx_profile.get('verifiedEmail', rpx_profile.get('email'))
     })
 
-    return render_account_view('account/register.html', form=form.as_widget())
+    if request.method == 'POST' and form.validate(request.form):
+        account = User(identifier=request.form.get('identifier'),
+                       provider=request.form.get('provider'),
+                       username=request.form.get('username'),
+                       email=request.form.get('email'),
+                       display_name=request.form.get('display_name'),
+                       passwd=request.form.get('new_password'))
+        account.set_activation_key()
+        db.session.add(account)
+        db.commit()
+        email_contents = render_template(
+            'mails/activate_account.txt',
+            user=account.display_name,
+            confirmation_url=url_for('account.activate',
+                                     key=account.activation_key,
+                                     _external=True))
+        send_email(_(u"Activate your account"), email_contents,
+                     [account.email], quiet=False)
+        flash(_(u"A confirmation email has been sent to \"%s\" to activate "
+                u"your account.") % account.email )
+        request.login(account.id)
+        rpx_profile = request.session.pop('rpx_profile', None)
+        return redirect_to('index')
+
+    return render_account_view('register.html', form=form.as_widget())
 
 def activate_account(request, key):
     # Delete too old activations
@@ -198,10 +216,13 @@ def activate_account(request, key):
         flash("No account could be activated. Maybe it was too old.", "error")
         return redirect_back('index')
     account.activate()
-    account.privileges.add(ENTER_ACCOUNT_PANEL)
-    session.commit()
+    privilege = Privilege.query.get(ENTER_ACCOUNT_PANEL)
+    if not privilege:
+        privilege = Privilege(ENTER_ACCOUNT_PANEL)
+    account.privileges.add(privilege)
+    db.commit()
     flash(_(u"Your account has been successfully activated!"))
     return redirect_back('account.profile')
 
 def dashboard(request):
-    return render_account_view('account/dashboard.html')
+    return render_account_view('dashboard.html')

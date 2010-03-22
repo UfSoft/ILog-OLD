@@ -1,9 +1,28 @@
 {% extends "layout.html" %}
+{% from "admin/_form_helpers.html" import render_formbox %}
 {% block title %}Profile{% endblock %}
 
 {% block contents %}
-<fieldset class="form">
-  <legend>Your Profile</legend>
-  {{ form.as_dd() }}
-</fieldset>
+  <h1>Your Profile</h1>
+  {% call form() %}
+    <div class="formbox">
+      <h3>{{ form.username.label() }}</h3>
+      {{ form.username(size=30, disabled=True) }}
+    </div>
+    <div class="formbox">
+      <h3>{{ form.display_name.label() }}</h3>
+      {{ form.display_name(size=30) }}
+    </div>
+    {{ render_formbox(form.password) }}
+    {{ render_formbox(form.rep_password) }}
+    {{ render_formbox(form.email) }}
+    {{ render_formbox(form.locale) }}
+    {{ render_formbox(form.tzinfo) }}
+    <div class="actions">
+      <input type="submit" name="save" value="{{ _('Save') }}">
+      {%- if not form.new %}
+        <input type="submit" name="delete" value="{{ _('Delete') }}">
+      {%- endif %}
+    </div>
+  {% endcall %}
 {% endblock %}

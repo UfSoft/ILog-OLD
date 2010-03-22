@@ -27,6 +27,11 @@ class InstanceNotInitialized(RuntimeError):
     instance folder.
     """
 
+class DatabaseProblem(RuntimeError):
+    """Raised if an application was created for a not yet initialized
+    instance folder.
+    """
+
 
 def _create_ilog(instance_folder, timeout=5, in_reloader=True):
     """Creates a new Zine object and initialized it.  This is also aware of

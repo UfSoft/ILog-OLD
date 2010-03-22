@@ -75,7 +75,7 @@ def delete(request, user_id=None):
         elif request.form.get('confirm') and form.validate(request.form):
             form.add_invalid_redirect_target('admin.manage.users.edit',
                                              user_id=user.id)
-            form.delete_group()
+            form.delete_user()
             db.commit()
             return form.redirect('admin.manage.users')
 

@@ -24,6 +24,7 @@ urls_map = Map([
     Submount('/account', [
         Rule('/login', endpoint='account.login'),
         Rule('/logout', endpoint='account.logout'),
+        Rule('/delete', endpoint='account.delete'),
         Rule('/profile', endpoint='account.profile'),
         Rule('/dashboard', endpoint='account.dashboard'),
         Rule('/__rpx__', endpoint='account.rpx'),

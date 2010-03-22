@@ -140,7 +140,9 @@ class LoginForm(forms.Form):
     remember_me  = forms.BooleanField(_(u'Remember Me'), widget=forms.Checkbox)
 
     def context_validate(self, data):
-        log.debug("Validating context with data: %s", data)
+        public_data = data.copy()
+        public_data['password'] = '*****'
+        log.debug("Validating context with data: %s", public_data)
         account = User.query.filter(User.username==data['username']).first()
         if not account.check_password(data['password']):
             log.debug("Failed authentication for %s", data['username'])
@@ -151,6 +153,8 @@ class LoginForm(forms.Form):
 class RegisterForm(forms.Form):
 
     identifier   = forms.TextField(required=True, widget=forms.HiddenInput)
+    provider     = forms.TextField(_(u"Provider"), required=True,
+                                   widget=forms.HiddenInput)
     display_name = forms.TextField(_(u"Display Name"), required=True)
     username     = forms.TextField(_(u"Desired Username"), required=True,
                                    validators=[validators.unique_username])

@@ -203,10 +203,8 @@ class User(DeclarativeBase):
         if passwd:
             self.set_password(passwd)
 
-
     def __repr__(self):
         return "<User %s>" % (self.username or 'annonymous')
-
 
     def _active(self):
         return self.activation_key == '!'
@@ -232,7 +230,6 @@ class User(DeclarativeBase):
             size
         )
     gravatar_url = property(get_gravatar_url)
-
 
     def set_password(self, password):
         self.passwd_hash = gen_pwhash(password)

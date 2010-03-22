@@ -8,6 +8,7 @@
       <th>{{ _("Username") }}</th>
       <th>{{ _("Realname") }}</th>
       <th>{{ _("Mail") }}</th>
+      <th>{{ _("Provider") }}</th>
     </tr>
   {%- for user in users %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
@@ -16,6 +17,10 @@
           user.username|e }}</a></td>
       <td>{{ user.display_name|e }}</td>
       <td>{{ (user.email or '')|e }}</td>
+      <td>{%- if user.provider %}
+        <img src="{{ static_url('img/login/%s.png' % user.provider.lower()) }}"/>
+        {%- endif -%}{{ (user.provider or '')|e }}
+      </td>
     </tr>
   {%- endfor %}
   </table>

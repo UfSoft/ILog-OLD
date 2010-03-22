@@ -17,6 +17,7 @@ all_views = {
     # Account Handlers
     'account.login'     : account.login,
     'account.logout'    : account.logout,
+    'account.delete'    : account.delete,
     'account.profile'   : account.profile,
     'account.dashboard' : account.dashboard,
     'account.register'  : account.register,

@@ -1,9 +1,25 @@
 {% extends "layout.html" %}
-{% block title %}Login{% endblock %}
+{% from "admin/_form_helpers.html" import render_formbox %}
+{% block title %}{{ _("Create Your Account") }}{% endblock %}
 
 {% block contents %}
-<fieldset class="form">
-  <legend>Create your account</legend>
-  {{ form.as_dd() }}
-</fieldset>
+  <h1>{{ _("Create Your Account") }}</h1>
+  {% call form() %}
+    {{ form.identifier() }}
+    <div class="formbox">
+      <h3>{{ form.provider.label() }}</h3>
+      <span>
+        <img src="{{ static_url('img/login/%s.png' % form.provider.value.lower()) }}"/>
+        {{ form.provider.value }} {{ form.provider() }}
+      </span>
+    </div>
+    {{ render_formbox(form.username, toggleable=false) }}
+    {{ render_formbox(form.display_name, toggleable=false) }}
+    {{ render_formbox(form.email, toggleable=false) }}
+    {{ render_formbox(form.new_password, toggleable=false) }}
+    {{ render_formbox(form.rep_password, toggleable=false) }}
+    <div class="actions">
+      <input type="submit" name="register" value="{{ _('Register') }}">
+    </div>
+  {% endcall %}
 {% endblock %}

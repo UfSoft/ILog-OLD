@@ -14,7 +14,7 @@ from urlparse import urlparse
 
 from babel.core import Locale
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, OperationalError
 from werkzeug.contrib.securecookie import SecureCookie
 from werkzeug.exceptions import HTTPException, Forbidden, NotFound
 from werkzeug.urls import url_quote, url_encode
@@ -364,8 +364,11 @@ class ILog(object):
             self.cfg['database_debug']
         )
 
-        if not self.database_engine.has_table('users'):
-            raise _core.InstanceNotInitialized()
+        try:
+            if not self.database_engine.has_table('users'):
+                raise _core.InstanceNotInitialized()
+        except OperationalError, error:
+            raise _core.DatabaseProblem("Database is not running??? %s" % error)
 
         # now setup the cache system
         self.cache = get_cache(self)
