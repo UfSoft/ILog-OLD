@@ -99,7 +99,7 @@ def format_date(date=None, format="medium"):
 
     :see: `babel.dates.format_date`
     """
-    return __format_obj().date(date=None, format="medium")
+    return __format_obj().date(date=None, format=format)
 
 
 def format_datetime(datetime=None, format='medium'):
@@ -124,8 +124,7 @@ def format_time(self, time=None, format='medium'):
 
     :see: `babel.dates.format_time`
     """
-    return __format_obj().time(time, format, tzinfo=self.tzinfo,
-                               locale=self.locale)
+    return __format_obj().time(time, format)
 
 def format_timedelta(self, delta, granularity='second', threshold=.85):
     """Return a time delta according to the rules of the given locale.
@@ -137,8 +136,7 @@ def format_timedelta(self, delta, granularity='second', threshold=.85):
     :see: `babel.dates.format_timedelta`
     """
     return __format_obj().format_timedelta(delta, granularity=granularity,
-                                           threshold=threshold,
-                                           locale=self.locale)
+                                           threshold=threshold)
 
 def format_number(self, number):
     """Return an integer number formatted for the locale.
