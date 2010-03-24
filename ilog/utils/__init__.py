@@ -6,6 +6,8 @@
 # License: BSD - Please view the LICENSE file for additional information.
 # ==============================================================================
 
+import unicodedata
+
 from werkzeug.local import Local, LocalManager
 from werkzeug.utils import html as h, escape
 from ilog.i18n import _
@@ -35,3 +37,9 @@ def flash(msg, type='info'):
 
     local.request.session.setdefault('flashed_messages', []).\
             append((type, msg))
+
+def gen_ascii_slug(text, delim=u'-'):
+    if isinstance(text, unicode):
+        text = text.decode('utf-8', 'replace')
+    text = delim.join(text.split())
+    return unicodedata.normalize('NFKD', text).encode('ascii', 'ignore')

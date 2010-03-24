@@ -3,6 +3,7 @@
 {% block title %}Profile{% endblock %}
 
 {% block contents %}
+  <img class="gravatar-right" src="{{ form.get_gravatar_url(size=50) }}"/>
   <h1>Your Profile</h1>
   {% call form() %}
     <div class="formbox">
@@ -18,6 +19,22 @@
     {{ render_formbox(form.email) }}
     {{ render_formbox(form.locale) }}
     {{ render_formbox(form.tzinfo) }}
+    <div class="formbox">
+      <h3>{{ form.providers.label() }}</h3>
+      <ul id="f_providers" class="choicegroup">
+      {% for choice in form.providers.choices %}
+        <li>
+          {{ choice() }}
+          <img src="{{ static_url('img/login/%s.png' % choice.label.text.lower()) }}"/>
+          {{ choice.label() }}
+        </li>
+      {% endfor %}
+      {% if cfg['rpxnow/app_domain'] %}<li>
+      <a href="http://{{ cfg['rpxnow/app_domain'] }}/openid/v2/signin?token_url={{ token_url }}"
+         class="rpxnow" onclick="return false;"/>{{ _("Associate login provider") }}</a>
+      </li>{% endif %}
+      </ul>
+    </div>
     <div class="actions">
       <input type="submit" name="save" value="{{ _('Save') }}">
       {%- if not form.new %}
@@ -25,4 +42,14 @@
       {%- endif %}
     </div>
   {% endcall %}
+  {% if cfg['rpxnow/app_domain'] %}
+  <script type="text/javascript">
+    var rpxJsHost = (("https:" == document.location.protocol) ? "https://" : "http://static.");
+    document.write(unescape("%3Cscript src='" + rpxJsHost + "rpxnow.com/js/lib/rpx.js' type='text/javascript'%3E%3C/script%3E"));
+  </script>
+  <script type="text/javascript">
+    RPXNOW.overlay = true;
+    RPXNOW.language_preference = 'en';
+  </script>
+  {% endif %}
 {% endblock %}

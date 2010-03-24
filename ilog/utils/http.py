@@ -11,6 +11,9 @@
 """
 
 import logging
+import urllib
+import urllib2
+import simplejson
 from urlparse import urlparse, urljoin
 
 from werkzeug.utils import redirect as _redirect
@@ -172,3 +175,20 @@ class RequestLocal(object):
         if name not in self._vars:
             raise AttributeError(name)
         self._storage[name] = value
+
+def request_rpx_profile(request):
+    token = request.values.get('token')
+    params = urllib.urlencode({
+        'token': token,
+        'apiKey': request.app.cfg['rpxnow/api_key'],
+        'format': 'json'
+    })
+    http_response = urllib2.urlopen('https://rpxnow.com/api/v2/auth_info',
+                                    params)
+    auth_info = simplejson.loads(http_response.read())
+
+    del http_response
+
+    if auth_info['stat'] == 'ok':
+        return auth_info['profile']
+    return None

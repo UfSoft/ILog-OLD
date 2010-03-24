@@ -28,7 +28,7 @@ from sqlalchemy.orm import (EXT_CONTINUE, MapperExtension, dynamic_loader,
                             deferred)
 
 #from ilog import application as app
-from ilog.utils import local_manager
+from ilog.utils import local_manager, gen_ascii_slug
 from ilog.utils.crypto import gen_pwhash, check_pwhash
 
 log = logging.getLogger(__name__)
@@ -145,6 +145,29 @@ db.cleanup_session = cleanup_session = session.remove
 
 log = logging.getLogger(__name__)
 
+class _ModelBase(object):
+    # Query Object
+    query         = session.query_property(orm.Query)
+
+    def __repr__(self):
+        return "<%s %d>" % (self.__class__.__name__,
+                            getattr(self, 'id', id(self)))
+
+
+class Provider(DeclarativeBase, _ModelBase):
+    __tablename__ = 'providers'
+
+    identifier    = db.Column(db.String, primary_key=True)
+    provider      = db.Column(db.String(25), index=True, unique=True)
+    user_id       = db.Column(db.ForeignKey("users.id"))
+
+    # Relationships
+    account       = None    # Defined on User
+
+    def __init__(self, identifier=None, provider=None):
+        self.identifier = identifier
+        self.provider = provider
+
 
 class UserQuery(orm.Query):
 
@@ -158,14 +181,19 @@ class UserQuery(orm.Query):
             )
         )
 
-class User(DeclarativeBase):
+    def by_provider(self, identifier):
+        provider = Provider.query.get(identifier)
+        if provider:
+            return provider.account
+        return None
+
+
+class User(DeclarativeBase, _ModelBase):
     __tablename__ = 'users'
 
     is_somebody   = True
 
     id            = db.Column(db.Integer, primary_key=True)
-    identifier    = db.Column(db.String, index=True, unique=True)
-    provider      = db.Column(db.String(25), index=True, unique=True)
     username      = db.Column(db.String(25), index=True, unique=True)
     email         = db.deferred(db.Column(db.String, index=True, unique=True))
     display_name  = db.Column(db.String(60))
@@ -180,24 +208,22 @@ class User(DeclarativeBase):
     locale        = db.Column(db.String(10), default="en")
 
 
-    # Relations
+    # Relationships
     privileges    = db.relation("Privilege", secondary="user_privileges",
                                 backref="priveliged_users", lazy=True,
                                 collection_class=set, cascade='all, delete')
     groups        = None    # Defined on Group
+    providers     = db.relation("Provider", backref="account",
+                                collection_class=set,
+                                cascade="all, delete, delete-orphan")
+    identities    = None    # Defined on Identity
 
     query   = session.query_property(UserQuery)
 
-    def __init__(self, identifier=None, provider=None, username=None,
-                 email=None, display_name=None, confirmed=False, passwd=None,
-                 tzinfo="UTC", locale="en"):
-        self.identifier = identifier
-        self.provider = provider
+    def __init__(self, username=None, email=None, display_name=None,
+                 confirmed=False, passwd=None, tzinfo="UTC", locale="en"):
         self.username = username
-        if display_name:
-            self.display_name = display_name
-        else:
-            self.display_name = username or identifier
+        self.display_name = display_name and display_name or username
         self.email = email
         self.confirmed = confirmed
         if passwd:
@@ -212,8 +238,7 @@ class User(DeclarativeBase):
 
     def set_activation_key(self):
         self.activation_key = sha1(("%s|%s|%s|%s" % (
-            self.id, self.identifier or self.username,
-            self.register_date, time())).encode('utf-8')
+            self.id, self.username, self.register_date, time())).encode('utf-8')
         ).hexdigest()
 
     def activate(self):
@@ -244,7 +269,6 @@ class User(DeclarativeBase):
 
     def update_last_login(self):
         self.last_login = datetime.utcnow()
-        session.commit()
 
     @property
     def all_privileges(self):
@@ -280,7 +304,7 @@ class PrivilegeQuery(orm.Query):
         return self.filter(Privilege.name==privilege).first()
 
 
-class Privilege(DeclarativeBase):
+class Privilege(DeclarativeBase, _ModelBase):
     __tablename__ = 'privileges'
 
     id      = db.Column(db.Integer, primary_key=True)
@@ -308,7 +332,7 @@ user_privileges = db.Table('user_privileges', metadata,
 )
 
 
-class Group(DeclarativeBase):
+class Group(DeclarativeBase, _ModelBase):
     __tablename__ = 'groups'
 
     id            = db.Column(db.Integer, primary_key=True)
@@ -322,11 +346,8 @@ class Group(DeclarativeBase):
                                 backref="priveliged_groups", lazy=True,
                                 collection_class=set, cascade='all, delete')
 
-    query = session.query_property(orm.Query)
-
     def __init__(self, group_name):
         self.name = group_name
-        DeclarativeBase.__init__(self)
 
     def __repr__(self):
         return u'<%s %r:%r>' % (self.__class__.__name__, self.id, self.name)
@@ -343,14 +364,14 @@ group_privileges = db.Table('group_privileges', metadata,
 )
 
 
-class Bot(DeclarativeBase):
+class Bot(DeclarativeBase, _ModelBase):
     __tablename__ = 'bots'
 
     name    = db.Column(db.String, primary_key=True)
     user_id = db.Column(db.ForeignKey('users.id'))
 
 
-class Network(DeclarativeBase):
+class Network(DeclarativeBase, _ModelBase):
     __tablename__ = 'networks'
 
     slug    = db.Column(db.String, primary_key=True)
@@ -367,7 +388,7 @@ class Network(DeclarativeBase):
         self.slug = self.__create_slug(name)
 
     def __create_slug(self, name):
-        initial_slug = gen_slug(name)
+        initial_slug = gen_ascii_slug(name)
         slug = initial_slug
         similiars = 1
         sa_session = db.session()
@@ -378,7 +399,7 @@ class Network(DeclarativeBase):
         return slug
 
 
-class NetworkServer(DeclarativeBase):
+class NetworkServer(DeclarativeBase, _ModelBase):
     __tablename__  = 'network_servers'
     __table_args__ = (db.UniqueConstraint('network_slug', 'address', 'port'), {})
 
@@ -395,7 +416,7 @@ class NetworkServer(DeclarativeBase):
         self.port = port
 
 
-class NetworkParticipation(DeclarativeBase):
+class NetworkParticipation(DeclarativeBase, _ModelBase):
     __tablename__ = 'network_participations'
 #    __table_args__ = (db.UniqueConstraint('bot_id', 'network_slug'), {})
 
@@ -406,7 +427,7 @@ class NetworkParticipation(DeclarativeBase):
     password      = db.Column(db.String)
 
 
-class Identity(DeclarativeBase):
+class IrcIdentity(DeclarativeBase, _ModelBase):
     __tablename__  = 'identities'
     __table_args__ = (db.UniqueConstraint('network_name', 'nick'), {})
 
@@ -418,7 +439,7 @@ class Identity(DeclarativeBase):
     user_id        = db.Column(db.ForeignKey('users.id'), default=None)
 
 
-class Channel(DeclarativeBase):
+class Channel(DeclarativeBase, _ModelBase):
     __tablename__  = 'channels'
     __table_args__ = (db.UniqueConstraint('network_name', 'name', 'prefix'), {})
 
@@ -435,42 +456,15 @@ class Channel(DeclarativeBase):
     changed_by_id = db.Column('topic_changed_by_identity_id',
                               db.ForeignKey('identities.id'))
 
-    query   = session.query_property(orm.Query)
 
-
-class Event(DeclarativeBase):
-    __tablename__  = 'events'
+class IrcEvent(DeclarativeBase, _ModelBase):
+    __tablename__  = 'irc_events'
     id             = db.Column(db.Integer, primary_key=True, autoincrement=True)
     channel_id     = db.Column(db.ForeignKey('channels.id'), index=True)
     stamp          = db.Column(db.DateTime(timezone=True))
     type           = db.Column(db.String(10))
     identity_id    = db.Column(db.ForeignKey('identities.id'), index=True)
     message        = db.Column(db.String)
-
-
-
-class Session(DeclarativeBase):
-    __tablename__ = 'sessions'
-
-    id          = db.Column(db.String(64), primary_key=True)
-    data        = db.Column(db.PickleType)
-    ip_address  = db.Column(db.String(46))
-    user_agent  = db.Column(db.String(255))
-    expires     = db.Column(db.DateTime)
-    user_id     = db.Column(db.ForeignKey('users.id'), default=None)
-
-    # Relations
-    authenticated_as = db.relation(User, backref='session', uselist=False)
-
-    def __init__(self, id, data, ip_address, user_agent, expires):
-        self.id = id
-        self.data = data
-        self.ip_address = ip_address
-        self.user_agent = user_agent
-        self.expires = expires
-
-    def __repr__(self):
-        return '<%s "%s">' % (self.__class__.__name__, self.id)
 
 
 # circular imports

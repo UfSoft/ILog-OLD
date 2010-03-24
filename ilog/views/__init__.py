@@ -15,14 +15,15 @@ all_views = {
     'index'             : base.index,
 
     # Account Handlers
-    'account.login'     : account.login,
-    'account.logout'    : account.logout,
-    'account.delete'    : account.delete,
-    'account.profile'   : account.profile,
-    'account.dashboard' : account.dashboard,
-    'account.register'  : account.register,
-    'account.rpx'       : account.rpx_post,
-    'account.activate'  : account.activate_account,
+    'account.rpx'           : account.rpx_post,
+    'account.login'         : account.login,
+    'account.logout'        : account.logout,
+    'account.delete'        : account.delete,
+    'account.profile'       : account.profile,
+    'account.register'      : account.register,
+    'account.activate'      : account.activate_account,
+    'account.dashboard'     : account.dashboard,
+    'account.rpx_providers' : account.rpx_providers_post,
 
     # Network Handlers
     'network.index'     : networks.index,

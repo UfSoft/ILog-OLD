@@ -29,6 +29,7 @@ urls_map = Map([
         Rule('/dashboard', endpoint='account.dashboard'),
         Rule('/__rpx__', endpoint='account.rpx'),
         Rule('/register', endpoint='account.register'),
+        Rule('/__rpx_providers__', endpoint='account.rpx_providers'),
         Rule('/activate', defaults={'key': None}, endpoint='account.activate'),
         Rule('/activate/<string:key>', endpoint='account.activate')
     ]),
@@ -47,14 +48,26 @@ urls_map = Map([
             Submount('/groups', [
                 Rule('/', endpoint='admin.manage.groups'),
                 Rule('/new', endpoint='admin.manage.groups.new'),
-                Rule('/edit/<int:group_id>', endpoint='admin.manage.groups.edit'),
-                Rule('/delete/<int:group_id>', endpoint='admin.manage.groups.delete'),
+                Rule('/edit/<int:group_id>',
+                     endpoint='admin.manage.groups.edit'),
+                Rule('/delete/<int:group_id>',
+                     endpoint='admin.manage.groups.delete'),
             ]),
             Submount('/users', [
                 Rule('/', endpoint='admin.manage.users'),
                 Rule('/new', endpoint='admin.manage.users.new'),
-                Rule('/edit/<user_id>', endpoint='admin.manage.users.edit'),
-                Rule('/delete/<user_id>', endpoint='admin.manage.users.delete'),
+                Rule('/edit/<int:user_id>',
+                     endpoint='admin.manage.users.edit'),
+                Rule('/delete/<int:user_id>',
+                     endpoint='admin.manage.users.delete'),
+            ]),
+            Submount('/networks', [
+                Rule('/', endpoint='admin.manage.networks'),
+                Rule('/new', endpoint='admin.manage.networks.new'),
+                Rule('/edit/<int:network_id>',
+                     endpoint='admin.manage.networks.edit'),
+                Rule('/delete/<network_id>',
+                     endpoint='admin.manage.networks.delete'),
             ]),
         ]),
         Submount('/options', [

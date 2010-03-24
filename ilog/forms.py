@@ -12,7 +12,7 @@ from ilog.application import get_application, get_request
 from ilog.database import db, Group, User
 from ilog.i18n import _, lazy_gettext, list_languages, list_timezones
 from ilog.privileges import bind_privileges
-from ilog.utils import forms, validators
+from ilog.utils import flash, forms, validators
 
 log = logging.getLogger(__name__)
 
@@ -128,7 +128,12 @@ class _UserBoundForm(forms.Form):
         widget = forms.Form.as_widget(self)
         widget.user = self.user
         widget.new = self.user is None
+        widget.get_gravatar_url = self.get_gravatar_url
         return widget
+
+    def get_gravatar_url(self, size=80):
+        if self.user:
+            return self.user.get_gravatar_url(size=size)
 
 
 class LoginForm(forms.Form):
@@ -185,6 +190,8 @@ class AccountProfileForm(_UserBoundForm):
                                    widget=forms.PasswordInput)
     locale       = forms.ChoiceField(_(u'Language'))
     tzinfo       = forms.ChoiceField(_(u'Timezone'))
+    providers    = forms.MultiChoiceField(lazy_gettext(u'Login Providers'),
+                                          widget=forms.CheckboxGroup)
 
     def __init__(self, user=None, initial=None):
         if user is not None:
@@ -196,8 +203,11 @@ class AccountProfileForm(_UserBoundForm):
                 privileges=[x.name for x in user.privileges],
                 groups=[g.name for g in user.groups],
                 locale=user.locale,
-                tzinfo=user.tzinfo
+                tzinfo=user.tzinfo,
+                providers=[p.identifier for p in user.providers]
             )
+            self.providers.choices = [(p.identifier, p.provider)
+                                      for p in user.providers]
         _UserBoundForm.__init__(self, user, initial)
         self.locale.choices = list_languages()
         self.tzinfo.choices = list_timezones()
@@ -211,7 +221,17 @@ class AccountProfileForm(_UserBoundForm):
             raise forms.ValidationError(_('The two passwords don\'t match.'))
 
     def _set_common_attributes(self, user):
-        forms.set_fields(user, self.data, 'display_name', 'email', 'locale', 'tzinfo')
+        forms.set_fields(user, self.data, 'display_name', 'email', 'locale',
+                         'tzinfo')
+        # Remove Login Providers
+        providers_mapping = dict((p.identifier, p) for p in user.providers)
+        choosen_providers = set(self.data['providers'])
+        associated_providers = set(providers_mapping.keys())
+        for provider_identifier in (associated_providers - choosen_providers):
+            provider = providers_mapping[provider_identifier]
+            flash("De-associated %s as a login provider" % provider.provider)
+            user.providers.remove(provider)
+            db.session.delete(provider)
 
     def save_changes(self):
         """Apply the changes."""
@@ -258,6 +278,7 @@ class EditUserForm(AccountProfileForm):
         for group in (choosen_groups - bound_groups):
             user.groups.append(group_mapping[group])
 
+
     def make_user(self):
         """A helper function that creates a new user object."""
         user = User(username=self.data['username'],
@@ -275,6 +296,7 @@ class EditUserForm(AccountProfileForm):
             self.user.set_password(self.data['password'])
         self.user.email = self.data['email']
         self._set_common_attributes(self.user)
+
 
 
 class DeleteUserForm(_UserBoundForm):

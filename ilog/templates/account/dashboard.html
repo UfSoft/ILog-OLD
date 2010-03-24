@@ -1,8 +1,7 @@
 {% extends "layout.html" %}
-{% block title %}Dashboard{% endblock %}
+{% block title %}{{ _("Dashboard") }}{% endblock %}
 
 {% block contents %}
-<fieldset class="form">
-  <legend>Dashboard</legend>
-</fieldset>
+  <img class="gravatar-right" src="{{ request.user.get_gravatar_url(size=50) }}"/>
+  <h1>{{ _("Dashboard") }}</h1>
 {% endblock %}

@@ -4,23 +4,30 @@
   <h1>{{ _("Manage Users") }}</h1>
   <table>
     <tr>
-      <th>{{ _("ID") }}</th>
+      <th class="narrow">{{ _("ID") }}</th>
+      <th class="narrow">Gravatar</th>
       <th>{{ _("Username") }}</th>
       <th>{{ _("Realname") }}</th>
       <th>{{ _("Mail") }}</th>
-      <th>{{ _("Provider") }}</th>
+      <th>{{ _("Providers") }}</th>
+      <th>{{ _("Created At") }}</th>
+      <th>{{ _("Last Access") }}</th>
     </tr>
   {%- for user in users %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
       <td>{{ user.id }}</td>
+      <td><img src="{{ user.get_gravatar_url(size=20) }}"/></td>
       <td><a href="{{ url_for('admin.manage.users.edit', user_id=user.id)|e }}">{{
           user.username|e }}</a></td>
       <td>{{ user.display_name|e }}</td>
       <td>{{ (user.email or '')|e }}</td>
-      <td>{%- if user.provider %}
-        <img src="{{ static_url('img/login/%s.png' % user.provider.lower()) }}"/>
-        {%- endif -%}{{ (user.provider or '')|e }}
+      <td>{% if user.providers -%}{% for provider in user.providers %}
+        <img src="{{ static_url('img/login/%s.png' % provider.provider.lower()) }}"
+             alt="{{ provider.provider }}" title="{{ provider.provider }}"/>
+        {%- endfor -%}{%- endif -%}
       </td>
+      <td>{{ user.register_date|datetime_format }}</td>
+      <td>{{ user.last_login|datetime_format }}</td>
     </tr>
   {%- endfor %}
   </table>

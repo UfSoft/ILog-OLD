@@ -1,9 +1,8 @@
 {% extends "layout.html" %}
-{% block title %}Login{% endblock %}
+{% block title %}{{ _("Authenticate") }}{% endblock %}
 
 {% block contents %}
-<fieldset class="form">
-  <legend>Authenticate</legend>
+  <h1>{{ _("Authenticate") }}</h1>
   {% if cfg['rpxnow/app_domain'] %}
   <div class="rpxnow">
     <iframe allowtransparency="true"
@@ -12,5 +11,4 @@
   </div>
   {% endif %}
   {{ form.as_dd() }}
-</fieldset>
 {% endblock %}

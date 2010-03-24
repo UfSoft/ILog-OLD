@@ -410,6 +410,7 @@ div.contents table th {
     text-align: left;
     color: #18374B;
 }
+div.contents table th.narrow { width: 1px; }
 
 div.contents table td {
     border-bottom: 1px dotted #ccc;
@@ -1528,8 +1529,9 @@ span.help {
   font-size: 80%; text-align: center; font-style: italic; padding-top: 15px;
 }
 
-/* ::: Freeform (nevow formless) Overrides ::: */
-.freeform-error { color: red; }
+/* ::: Gravatar ::: */
+img.gravatar-right { float: right; padding-right: 5px; margin-right: 15px; }
 
 /* ::: Image Frames ::: */
 .imageframe { float:left; padding:10px; position: relative; }
+

@@ -2,8 +2,10 @@
 {% from "admin/_form_helpers.html" import render_formbox %}
 {% block title %}{{ _('New User') if form.new else _('Edit User') }}{% endblock %}
 {% block contents %}
+  <img class="gravatar-right" src="{{ form.get_gravatar_url(size=50) }}"/>
   <h1>{{ self.title()|e }}</h1>
   {% call form() %}
+
     <div class="formbox">
       <h3>{{ form.username.label() }}</h3>
       {{ form.username(size=30, editable=False) }}
