@@ -102,7 +102,7 @@ def format_date(date=None, format="medium"):
     return __format_obj().date(date=None, format="medium")
 
 
-def format_datetime(self, datetime=None, format='medium'):
+def format_datetime(datetime=None, format='medium'):
     """Return a date and time formatted according to the given pattern.
 
     >>> from pytz import timezone
@@ -112,8 +112,7 @@ def format_datetime(self, datetime=None, format='medium'):
 
     :see: `babel.dates.format_datetime`
     """
-    return __format_obj().datetime(datetime, format, tzinfo=self.tzinfo,
-                                   locale=self.locale)
+    return __format_obj().datetime(datetime, format)
 
 def format_time(self, time=None, format='medium'):
     """Return a time formatted according to the given pattern.
