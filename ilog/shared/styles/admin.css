@@ -80,3 +80,10 @@ div.formbox h3 {
 div.toggleable h3:hover {
   background-color: #a8d7a8;
 }
+
+div.contents input:focus,
+div.contents textarea:focus,
+div.contents select:focus {
+  border:1px solid #9cf99c;
+  outline-color:#579d57;
+}
