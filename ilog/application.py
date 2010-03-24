@@ -269,6 +269,8 @@ class Request(RequestBase):
             self.locale = Locale(user.locale)
             self.translations = i18n.load_translations(self.locale)
         self.user = user
+        self.user.update_last_login()
+        db.commit()
         self.session = session
 
     @property
@@ -282,7 +284,7 @@ class Request(RequestBase):
         """
         log.debug("Binding user with id %r to request(%d)",
                   user_id, id(self))
-        from ilog.database import User
+        from ilog.database import db, User
         user = User.query.get(user_id)
         if user is None:
             raise RuntimeError('User does not exist')
@@ -290,6 +292,7 @@ class Request(RequestBase):
         self.user = user
         log.debug("Binding user %r to request(%d)", self.user.username, id(self))
         self.user.update_last_login()
+        db.commit()
         self.session['uid'] = user.id
         self.session['lt'] = time()
         if permanent:
