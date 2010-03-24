@@ -46,6 +46,7 @@ class _ConfigForm(forms.Form):
 
     def __init__(self, initial=None, parent=None):
         self.app = get_application()
+        self.parent = parent
         if initial is None:
             initial = {}
             for name in self.fields:
@@ -57,6 +58,8 @@ class _ConfigForm(forms.Form):
 
     def _apply(self, t, skip):
         for key, value in self.data.iteritems():
+            if self.parent:
+                key = "%s/%s" % (self.parent, key)
             if key not in skip:
                 t[key] = value
 
