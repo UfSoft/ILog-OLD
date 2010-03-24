@@ -165,8 +165,12 @@ class WebSetup(object):
                 lambda: orm.create_session(engine, autoflush=True,
                                            autocommit=False)
             )
-            from ilog.database import User, Privilege
+            from ilog.database import Group, Privilege, User
             from ilog.privileges import ILOG_ADMIN
+
+            admin_group = Group('Administrators')
+            session.add(admin_group)
+            admin_group.privileges.add(Privilege(ILOG_ADMIN))
 
             # create admin account
             user = User(
@@ -178,8 +182,8 @@ class WebSetup(object):
             session.add(user)
             user.set_password(value('admin_password'))
 
-            privilege = Privilege(ILOG_ADMIN.name)
-            user.privileges.add(privilege)
+            user.groups.append(admin_group)
+
             session.commit()
 
             # set up the initial config
