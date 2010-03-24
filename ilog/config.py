@@ -116,8 +116,9 @@ DEFAULT_VARS = {
             ('default', 'Default'),
             ('identicon', 'IdentIcon'),
             ('monsterid', 'MonsterId'),
-            ('wavatar', 'wAvatar')
-        ], default="identicon", help_text=l_(u'the gravatar fallback to use')),
+            ('wavatar', 'wAvatar'),
+            ('404', l_(u'No default images.'))
+        ], default="404", help_text=l_(u'the gravatar fallback to use')),
 
     'gravatar/rating':        DChoiceField(choices=[('g', u'G'),
                                                     ('pg', u'PG'),
