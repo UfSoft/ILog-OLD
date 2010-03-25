@@ -367,14 +367,15 @@ group_privileges = db.Table('group_privileges', metadata,
 class Bot(DeclarativeBase, _ModelBase):
     __tablename__ = 'bots'
 
-    name    = db.Column(db.String, primary_key=True)
+    id      = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.ForeignKey('users.id'))
 
 
 class Network(DeclarativeBase, _ModelBase):
     __tablename__ = 'networks'
 
-    slug    = db.Column(db.String, primary_key=True)
+    id      = db.Column(db.Integer, primary_key=True)
+    slug    = db.Column(db.String, index=True)
     name    = db.Column(db.String(20))
 
     # Relationships
@@ -401,10 +402,10 @@ class Network(DeclarativeBase, _ModelBase):
 
 class NetworkServer(DeclarativeBase, _ModelBase):
     __tablename__  = 'network_servers'
-    __table_args__ = (db.UniqueConstraint('network_slug', 'address', 'port'), {})
+    __table_args__ = (db.UniqueConstraint('network_id', 'address', 'port'), {})
 
     id             = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    network_slug   = db.Column(db.ForeignKey('networks.slug'))
+    network_id     = db.Column(db.ForeignKey('networks.id'))
     address        = db.Column(db.String, nullable=False)
     port           = db.Column(db.Integer, nullable=False)
     lag            = db.Column(db.Float, default=0.0)
@@ -418,34 +419,33 @@ class NetworkServer(DeclarativeBase, _ModelBase):
 
 class NetworkParticipation(DeclarativeBase, _ModelBase):
     __tablename__ = 'network_participations'
-#    __table_args__ = (db.UniqueConstraint('bot_id', 'network_slug'), {})
 
     id            = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    bot_id        = db.Column(db.ForeignKey('bots.name'))
-    network_slug  = db.Column(db.ForeignKey('networks.slug'))
+    bot_id        = db.Column(db.ForeignKey('bots.id'))
+    network_id    = db.Column(db.ForeignKey('networks.id'))
     nick          = db.Column(db.String, nullable=False)
     password      = db.Column(db.String)
 
 
 class IrcIdentity(DeclarativeBase, _ModelBase):
     __tablename__  = 'identities'
-    __table_args__ = (db.UniqueConstraint('network_name', 'nick'), {})
+    __table_args__ = (db.UniqueConstraint('network_id', 'nick'), {})
 
     id             = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    network_name   = db.Column(db.ForeignKey('networks.slug'))
+    user_id        = db.Column(db.ForeignKey('users.id'), default=None)
+    network_id     = db.Column(db.ForeignKey('networks.id'))
     nick           = db.Column(db.String(64))
     realname       = db.Column(db.String(128))
     ident          = db.Column(db.String(64))
-    user_id        = db.Column(db.ForeignKey('users.id'), default=None)
 
 
 class Channel(DeclarativeBase, _ModelBase):
     __tablename__  = 'channels'
-    __table_args__ = (db.UniqueConstraint('network_name', 'name', 'prefix'), {})
+    __table_args__ = (db.UniqueConstraint('network_id', 'name', 'prefix'), {})
 
     id             = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name           = db.Column(db.String, index=True)
-    network_name   = db.Column(db.ForeignKey('networks.slug'), index=True)
+    network_id     = db.Column(db.ForeignKey('networks.id'), index=True)
     prefix         = db.Column(db.String(3))
 #    locale         = db.Column(db.String(6))
     key            = db.Column(db.String, nullable=True)
@@ -459,6 +459,7 @@ class Channel(DeclarativeBase, _ModelBase):
 
 class IrcEvent(DeclarativeBase, _ModelBase):
     __tablename__  = 'irc_events'
+
     id             = db.Column(db.Integer, primary_key=True, autoincrement=True)
     channel_id     = db.Column(db.ForeignKey('channels.id'), index=True)
     stamp          = db.Column(db.DateTime(timezone=True))

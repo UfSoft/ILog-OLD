@@ -4,8 +4,7 @@
   <h1>{{ _("Manage Users") }}</h1>
   <table>
     <tr>
-      <th class="narrow">{{ _("ID") }}</th>
-      <th class="narrow">Gravatar</th>
+      <th class="narrow">&nbsp;</th>
       <th>{{ _("Username") }}</th>
       <th>{{ _("Realname") }}</th>
       <th>{{ _("Mail") }}</th>
@@ -15,7 +14,6 @@
     </tr>
   {%- for user in users %}
     <tr class="{{ loop.cycle('odd', 'even') }}">
-      <td>{{ user.id }}</td>
       <td><img src="{{ user.get_gravatar_url(size=20) }}"/></td>
       <td><a href="{{ url_for('admin.manage.users.edit', user_id=user.id)|e }}">{{
           user.username|e }}</a></td>

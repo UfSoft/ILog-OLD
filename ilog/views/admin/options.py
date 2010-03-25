@@ -8,8 +8,7 @@
 
 from copy import copy
 
-from ilog.application import (add_ctxnavbar_item, get_application, get_request,
-                              render_response)
+from ilog.application import add_ctxnavbar_item, get_application
 from ilog.utils import forms
 from ilog.views.admin import render_admin_view
 from ilog.i18n import _

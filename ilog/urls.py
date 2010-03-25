@@ -69,6 +69,22 @@ urls_map = Map([
                 Rule('/delete/<network_id>',
                      endpoint='admin.manage.networks.delete'),
             ]),
+            Submount('/channels', [
+                Rule('/', endpoint='admin.manage.channels'),
+                Rule('/new', endpoint='admin.manage.channels.new'),
+                Rule('/edit/<int:channel_id>',
+                     endpoint='admin.manage.channels.edit'),
+                Rule('/delete/<channel_id>',
+                     endpoint='admin.manage.channels.delete'),
+            ]),
+            Submount('/bots', [
+                Rule('/', endpoint='admin.manage.bots'),
+                Rule('/new', endpoint='admin.manage.bots.new'),
+                Rule('/edit/<int:bot_id>',
+                     endpoint='admin.manage.bots.edit'),
+                Rule('/delete/<bot_id>',
+                     endpoint='admin.manage.bots.delete'),
+            ]),
         ]),
         Submount('/options', [
             Rule('/', endpoint='admin.options.basic'),

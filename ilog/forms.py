@@ -9,7 +9,7 @@
 import logging
 
 from ilog.application import get_application, get_request
-from ilog.database import db, Group, User
+from ilog.database import db, Group, User, Network, NetworkServer
 from ilog.i18n import _, lazy_gettext, list_languages, list_timezones
 from ilog.privileges import bind_privileges
 from ilog.utils import flash, forms, validators
@@ -309,3 +309,92 @@ class DeleteUserForm(_UserBoundForm):
         """Deletes the user."""
         # XXX: find all the identities by this account and delete them too
         db.delete(self.user)
+
+
+class _NetworkBoundForm(forms.Form):
+    """Internal baseclass for network bound forms."""
+
+    def __init__(self, network, initial=None):
+        forms.Form.__init__(self, initial)
+        self.app = get_application()
+        self.network = network
+
+    def as_widget(self):
+        widget = forms.Form.as_widget(self)
+        widget.network = self.network
+        widget.new = self.network is None
+        return widget
+
+class EditNetworksForm(_NetworkBoundForm):
+    id           = forms.TextField(widget=forms.HiddenInput)
+    network_name = forms.TextField(_(u"Name"), required=True,
+                                   validators=[validators.not_empty])
+    servers      = forms.MultiChoiceField(_(u"Servers"),
+                                          widget=forms.CheckboxGroup)
+    address      = forms.TextField(lazy_gettext(u"Hostname"))
+    port         = forms.IntegerField(lazy_gettext(u"Port"))
+
+    def __init__(self, network, initial=None):
+        if network is not None:
+            initial = forms.fill_dict(initial,
+                id=network.id,
+                network_name=network.name,
+                servers=[n.id for n in network.servers]
+            )
+            self.servers.choices = [(n.id, "%s:%d" % (n.address, n.port)) for
+                                    n in network.servers]
+
+        _NetworkBoundForm.__init__(self, network, initial)
+
+        if network is None:
+            self.address.required = True
+            self.port.required = True
+            self.servers.choices = []
+
+    def validate_network_name(self, network_name):
+        query = Network.query.filter_by(name=network_name)
+        if self.network is not None:
+            query = query.filter(Network.id != self.network.id)
+        if query.first() is not None:
+            raise forms.ValidationError(
+                _(u'This network name is already in use')
+            )
+
+    def context_validate(self, data):
+        if self.address.required:
+            port = data['port']
+            address = data['address']
+            from telnetlib import Telnet
+            try:
+                telnet = Telnet(address, port, 10)
+            except:
+                telnet = Telnet(address, port)
+            telnet.set_debuglevel(10)
+            try:
+                telnet.read_until(" ", 10)
+            except EOFError:
+                raise forms.ValidationError(
+                    lazy_gettext(u"No connection could be established to "
+                                 u"%s:%d") % (address, port))
+
+    def make_network(self):
+        server = NetworkServer(self.data['address'], self.data['port'])
+        self.network =  Network(self.data['network_name'])
+        self.network.servers.append(server)
+        db.session.add(self.network)
+        return self.network
+
+
+class DeleteNetworksForm(_NetworkBoundForm):
+    id           = forms.TextField(required=True, widget=forms.HiddenInput)
+
+    def __init__(self, network, initial=None):
+        if network is not None:
+            initial = forms.fill_dict(initial,
+                id=network.id,
+            )
+        _NetworkBoundForm.__init__(self, network, initial)
+
+    def delete_network(self):
+        db.session.delete(self.network)
+
